@@ -1,3 +1,4 @@
+import { LoginOutput, LoginInput } from './dtos/login.dto';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -19,12 +20,11 @@ export class UserResolver {
   async createAccount(
     @Args('input') createAccountInput: CreateAccountInput,
   ): Promise<CreateAccountOutput> {
-    const { isSucceeded, error } = await this.usersService.createAccount(
-      createAccountInput,
-    );
-    return {
-      isSucceeded,
-      error,
-    };
+    return this.usersService.createAccount(createAccountInput);
+  }
+
+  @Mutation(() => LoginOutput)
+  async login(@Args('input') loginInput: LoginInput): Promise<LoginOutput> {
+    return this.usersService.login(loginInput);
   }
 }

@@ -1,3 +1,4 @@
+import { LoginInput, LoginOutput } from './dtos/login.dto';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -32,6 +33,35 @@ export class UsersService {
       return {
         isSucceeded: false,
         error: "Couldn't create an account",
+      };
+    }
+  }
+
+  async login({ email, password }: LoginInput): Promise<LoginOutput> {
+    try {
+      const user = await this.users.findOne({ email });
+
+      if (!user) {
+        return {
+          isSucceeded: false,
+          error: 'User not found',
+        };
+      }
+      const checkPassword = await user.checkPassword(password);
+      if (!checkPassword) {
+        return {
+          isSucceeded: false,
+          error: 'Wrong password',
+        };
+      }
+      return {
+        isSucceeded: true,
+        token: 'fakeToken',
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
       };
     }
   }
