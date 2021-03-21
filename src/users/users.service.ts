@@ -1,3 +1,4 @@
+import { JwtService } from './../jwt/jwt.service';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import {
   CreateAccountInput,
@@ -12,6 +13,7 @@ import { Repository } from 'typeorm';
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createAccount({
@@ -54,9 +56,10 @@ export class UsersService {
           error: 'Wrong password',
         };
       }
+      const token = this.jwtService.sign(user.id);
       return {
         isSucceeded: true,
-        token: 'fakeToken',
+        token,
       };
     } catch (error) {
       return {
