@@ -1,3 +1,4 @@
+import { AuthGuard } from './../auth/auth.guard';
 import { LoginOutput, LoginInput } from './dtos/login.dto';
 import {
   CreateAccountInput,
@@ -6,7 +7,7 @@ import {
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
-
+import { UseGuards } from '@nestjs/common';
 @Resolver(() => User)
 export class UserResolver {
   constructor(private readonly usersService: UsersService) {}
@@ -17,14 +18,8 @@ export class UserResolver {
   }
 
   @Query(() => User)
-  me(@Context() context) {
-    if (!context.user) {
-      return;
-    } else {
-      console.log(context.user);
-      return context.user;
-    }
-  }
+  @UseGuards(AuthGuard)
+  me(@Context() context) {}
 
   @Mutation(() => CreateAccountOutput)
   async createAccount(
