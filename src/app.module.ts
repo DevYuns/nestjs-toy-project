@@ -11,7 +11,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { CommonModule } from './common/common.module';
 import { JwtModule } from './jwt/jwt.module';
 import * as Joi from 'joi';
 @Module({
@@ -47,7 +46,6 @@ import * as Joi from 'joi';
       context: ({ req }) => ({ user: req['user'] }),
     }),
     UsersModule,
-    CommonModule,
     JwtModule.forRoot({
       secretKey: process.env.SECRET_KEY,
     }),
