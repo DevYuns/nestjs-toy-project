@@ -1,3 +1,4 @@
+import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { EditProfileOutput, EditProfileInput } from './dtos/edit-profile.dto';
 import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { AuthUser } from './../auth/auth-user.decorator';
@@ -61,6 +62,23 @@ export class UserResolver {
   ): Promise<EditProfileOutput> {
     try {
       await this.usersService.editProfile(authUser.id, editProfileInput);
+      return {
+        isSucceeded: true,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  @Mutation(() => VerifyEmailOutput)
+  async verifyEmail(
+    @Args('input') { code }: VerifyEmailInput,
+  ): Promise<VerifyEmailOutput> {
+    try {
+      await this.usersService.verifyEmail(code);
       return {
         isSucceeded: true,
       };

@@ -1,3 +1,4 @@
+import { Verification } from './users/entities/verification.entity';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { User } from './users/entities/user.entity';
 import {
@@ -39,7 +40,7 @@ import * as Joi from 'joi';
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV !== 'prod',
       namingStrategy: new SnakeNamingStrategy(),
-      entities: [User],
+      entities: [User, Verification],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
