@@ -27,19 +27,7 @@ export class UserResolver {
   async userProfile(
     @Args() userProfileInput: UserProfileInput,
   ): Promise<UserProfileOutput> {
-    try {
-      const user = await this.usersService.findById(userProfileInput.userId);
-      if (!user) throw Error();
-      return {
-        isSucceeded: true,
-        user,
-      };
-    } catch (error) {
-      return {
-        error: 'User Not Found',
-        isSucceeded: false,
-      };
-    }
+    return this.usersService.findById(userProfileInput.userId);
   }
 
   @Mutation(() => CreateAccountOutput)
@@ -60,33 +48,13 @@ export class UserResolver {
     @AuthUser() authUser: User,
     @Args('input') editProfileInput: EditProfileInput,
   ): Promise<EditProfileOutput> {
-    try {
-      await this.usersService.editProfile(authUser.id, editProfileInput);
-      return {
-        isSucceeded: true,
-      };
-    } catch (error) {
-      return {
-        isSucceeded: false,
-        error,
-      };
-    }
+    return this.usersService.editProfile(authUser.id, editProfileInput);
   }
 
   @Mutation(() => VerifyEmailOutput)
   async verifyEmail(
     @Args('input') { code }: VerifyEmailInput,
   ): Promise<VerifyEmailOutput> {
-    try {
-      await this.usersService.verifyEmail(code);
-      return {
-        isSucceeded: true,
-      };
-    } catch (error) {
-      return {
-        isSucceeded: false,
-        error,
-      };
-    }
+    return this.usersService.verifyEmail(code);
   }
 }
