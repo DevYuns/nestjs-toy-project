@@ -1,3 +1,4 @@
+import { AuthUser } from './../auth/auth-user.decorator';
 import { AuthGuard } from './../auth/auth.guard';
 import { LoginOutput, LoginInput } from './dtos/login.dto';
 import {
@@ -19,7 +20,9 @@ export class UserResolver {
 
   @Query(() => User)
   @UseGuards(AuthGuard)
-  me(@Context() context) {}
+  me(@AuthUser() authUser: User) {
+    return authUser;
+  }
 
   @Mutation(() => CreateAccountOutput)
   async createAccount(
