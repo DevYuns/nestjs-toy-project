@@ -90,13 +90,11 @@ export class UsersService {
 
   async findById(id: number): Promise<UserProfileOutput> {
     try {
-      const user = await this.usersRepository.findOne({ id });
-      if (user) {
-        return {
-          isSucceeded: true,
-          user,
-        };
-      }
+      const user = await this.usersRepository.findOneOrFail({ id });
+      return {
+        isSucceeded: true,
+        user,
+      };
     } catch (error) {
       return {
         isSucceeded: false,
@@ -158,7 +156,7 @@ export class UsersService {
       console.log(error);
       return {
         isSucceeded: false,
-        error,
+        error: 'could not verify email',
       };
     }
   }
