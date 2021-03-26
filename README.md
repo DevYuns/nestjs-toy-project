@@ -3,9 +3,11 @@
 ## 사용한 기술
 
 - [Nestjs](https://docs.nestjs.com/)
+- [Typescript](https://www.typescriptlang.org/)
 - [GraphQL](https://graphql.org/)
 - [TypeOrm](https://typeorm.io/#/)
 - [postgresQL](https://www.postgresql.org/)
+- [jest](https://jestjs.io/)
 
 ### .ENV
 
