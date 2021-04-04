@@ -1,3 +1,6 @@
+import { RestaurantsModule } from './restaurants/restaurants.module';
+import { Category } from './restaurants/entities/category.entity';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { Verification } from './users/entities/verification.entity';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { User } from './users/entities/user.entity';
@@ -42,10 +45,10 @@ import * as Joi from 'joi';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'prod',
-      logging:
-        process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
+      // logging:
+      //   process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
       namingStrategy: new SnakeNamingStrategy(),
-      entities: [User, Verification],
+      entities: [User, Verification, Restaurant, Category],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -60,6 +63,7 @@ import * as Joi from 'joi';
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     UsersModule,
+    RestaurantsModule,
   ],
   controllers: [],
   providers: [],
