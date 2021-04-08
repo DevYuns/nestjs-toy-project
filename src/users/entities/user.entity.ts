@@ -10,10 +10,11 @@ import { Entity, Column, BeforeInsert, BeforeUpdate, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsEmail, IsString, IsEnum, IsBoolean } from 'class-validator';
+
 export enum UserRole {
-  Client,
-  Owner,
-  Delivery,
+  CLIENT = 'CLIENT',
+  OWNER = 'OWNER',
+  DELIVERY = 'DELIVERY',
 }
 
 registerEnumType(UserRole, { name: 'UserRole' });

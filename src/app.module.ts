@@ -1,3 +1,4 @@
+import { AuthModule } from './auth/auth.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { Category } from './restaurants/entities/category.entity';
 import { Restaurant } from './restaurants/entities/restaurant.entity';
@@ -64,6 +65,7 @@ import * as Joi from 'joi';
     }),
     UsersModule,
     RestaurantsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
