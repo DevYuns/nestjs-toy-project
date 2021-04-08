@@ -1,3 +1,4 @@
+import { Role } from './../auth/role.decorator';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { EditProfileOutput, EditProfileInput } from './dtos/edit-profile.dto';
 import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
@@ -17,12 +18,12 @@ export class UserResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Query(() => User)
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   me(@AuthUser() authUser: User) {
     return authUser;
   }
 
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   @Query(() => UserProfileOutput)
   async userProfile(
     @Args() userProfileInput: UserProfileInput,
@@ -42,7 +43,7 @@ export class UserResolver {
     return this.usersService.login(loginInput);
   }
 
-  @UseGuards(AuthGuard)
+  @Role(['Any'])
   @Mutation(() => EditProfileOutput)
   async editProfile(
     @AuthUser() authUser: User,
