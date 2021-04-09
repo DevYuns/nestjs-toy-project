@@ -1,3 +1,5 @@
+import { CategoryOutput, CategoryInput } from './dtos/category.dto';
+import { allCategoriesOutput } from './dtos/all-categories.dto';
 import {
   DeleteRestaurantOutput,
   DeleteRestaurantInput,
@@ -15,7 +17,7 @@ import {
 } from './dtos/create-restaurant.dto';
 import { Restaurant } from './entities/restaurant.entity';
 import { Injectable } from '@nestjs/common';
-import { Repository, RelationId } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class RestaurantService {
@@ -123,6 +125,49 @@ export class RestaurantService {
 
       await this.restaurantRepository.delete(restaurantId);
       return { isSucceeded: true };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async allCategories(): Promise<allCategoriesOutput> {
+    try {
+      const categories = await this.categoryRepository.find();
+      return {
+        isSucceeded: true,
+        categories,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  countRestaurants(category: Category) {
+    return this.restaurantRepository.count({ category });
+  }
+
+  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+    try {
+      const category = await this.categoryRepository.findOne(
+        { slug },
+        { relations: ['restaurants'] },
+      );
+      if (!category) {
+        return {
+          isSucceeded: false,
+          error: 'Category not found',
+        };
+      }
+      return {
+        isSucceeded: true,
+        category,
+      };
     } catch (error) {
       return {
         isSucceeded: false,
