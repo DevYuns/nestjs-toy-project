@@ -158,10 +158,7 @@ export class RestaurantService {
   }: CategoryInput): Promise<CategoryOutput> {
     const PAGINATION_RANGE = 5;
     try {
-      const category = await this.categoryRepository.findOne(
-        { slug },
-        { relations: ['restaurants'] },
-      );
+      const category = await this.categoryRepository.findOne({ slug });
       if (!category) {
         return {
           isSucceeded: false,
