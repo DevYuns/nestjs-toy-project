@@ -1,3 +1,15 @@
+import {
+  SearchRestaurantOutput,
+  SearchRestaurantInput,
+} from './dtos/search-restaurant.dto';
+import {
+  SeeRestaurantInput,
+  SeeRestaurantOutput,
+} from './dtos/see-restaurant.dto';
+import {
+  RestaurantsOutPut,
+  RestaurantsInput,
+} from './dtos/all-restaurants.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { allCategoriesOutput } from './dtos/all-categories.dto';
 import { Category } from './entities/category.entity';
@@ -30,6 +42,27 @@ import {
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
+
+  @Query(() => RestaurantsOutPut)
+  allRestaurant(
+    @Args('input') restaurantsInput: RestaurantsInput,
+  ): Promise<RestaurantsOutPut> {
+    return this.restaurantService.allRestaurants(restaurantsInput);
+  }
+
+  @Query(() => SeeRestaurantOutput)
+  seeRestaurant(
+    @Args('input') seeRestaurantInput: SeeRestaurantInput,
+  ): Promise<SeeRestaurantOutput> {
+    return this.restaurantService.findRestaurantById(seeRestaurantInput);
+  }
+
+  @Query(() => SearchRestaurantOutput)
+  searchRestaurant(
+    @Args('input') searchRestaurantInput: SearchRestaurantInput,
+  ): Promise<SearchRestaurantOutput> {
+    return this.restaurantService.searchRestaurantByName(searchRestaurantInput);
+  }
 
   @Mutation(() => CreateRestaurantOutput)
   @Role(['OWNER'])

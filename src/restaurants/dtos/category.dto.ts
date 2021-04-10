@@ -1,3 +1,4 @@
+import { Restaurant } from './../entities/restaurant.entity';
 import {
   PaginationInput,
   PaginationOutPut,
@@ -13,6 +14,9 @@ export class CategoryInput extends PaginationInput {
 
 @ObjectType()
 export class CategoryOutput extends PaginationOutPut {
+  @Field(() => Restaurant, { nullable: true })
+  restaurants?: Restaurant[];
+
   @Field(() => Category, { nullable: true })
   category?: Category;
 }
