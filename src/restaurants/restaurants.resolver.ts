@@ -1,3 +1,4 @@
+import { RestaurantsOutPut, RestaurantsInput } from './dtos/restaurants.dto';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { allCategoriesOutput } from './dtos/all-categories.dto';
 import { Category } from './entities/category.entity';
@@ -30,6 +31,13 @@ import {
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
+
+  @Query(() => RestaurantsOutPut)
+  allRestaurant(
+    @Args('input') restaurantsInput: RestaurantsInput,
+  ): Promise<RestaurantsOutPut> {
+    return this.restaurantService.allRestaurants(restaurantsInput);
+  }
 
   @Mutation(() => CreateRestaurantOutput)
   @Role(['OWNER'])

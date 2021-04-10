@@ -1,3 +1,4 @@
+import { RestaurantsInput, RestaurantsOutPut } from './dtos/restaurants.dto';
 import { CategoryOutput, CategoryInput } from './dtos/category.dto';
 import { allCategoriesOutput } from './dtos/all-categories.dto';
 import {
@@ -26,6 +27,30 @@ export class RestaurantService {
     private readonly restaurantRepository: Repository<Restaurant>,
     private readonly categoryRepository: CategoryRepository,
   ) {}
+  private readonly _PAGINATION_RANGE = 5;
+
+  async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutPut> {
+    try {
+      const [
+        restaurants,
+        totalResults,
+      ] = await this.restaurantRepository.findAndCount({
+        skip: (page - 1) * this._PAGINATION_RANGE,
+        take: this._PAGINATION_RANGE,
+      });
+      return {
+        isSucceeded: true,
+        results: restaurants,
+        totalPages: Math.ceil(totalResults / this._PAGINATION_RANGE),
+        totalResults,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
 
   async createRestaurant(
     owner: User,
@@ -156,7 +181,6 @@ export class RestaurantService {
     slug,
     page,
   }: CategoryInput): Promise<CategoryOutput> {
-    const PAGINATION_RANGE = 5;
     try {
       const category = await this.categoryRepository.findOne({ slug });
       if (!category) {
@@ -170,15 +194,16 @@ export class RestaurantService {
         where: {
           category,
         },
-        take: PAGINATION_RANGE,
-        skip: (page - 1) * PAGINATION_RANGE,
+        take: this._PAGINATION_RANGE,
+        skip: (page - 1) * this._PAGINATION_RANGE,
       });
       category.restaurants = restaurants;
       const totalResults = await this.countRestaurants(category);
       return {
         isSucceeded: true,
+        restaurants,
         category,
-        totalPages: Math.ceil(totalResults / PAGINATION_RANGE),
+        totalPages: Math.ceil(totalResults / this._PAGINATION_RANGE),
       };
     } catch (error) {
       return {
