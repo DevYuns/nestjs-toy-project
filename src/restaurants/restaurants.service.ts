@@ -1,4 +1,15 @@
-import { RestaurantsInput, RestaurantsOutPut } from './dtos/restaurants.dto';
+import {
+  SearchRestaurantInput,
+  SearchRestaurantOutput,
+} from './dtos/search-restaurant.dto';
+import {
+  SeeRestaurantInput,
+  SeeRestaurantOutput,
+} from './dtos/see-restaurant.dto';
+import {
+  RestaurantsInput,
+  RestaurantsOutPut,
+} from './dtos/all-restaurants.dto';
 import { CategoryOutput, CategoryInput } from './dtos/category.dto';
 import { allCategoriesOutput } from './dtos/all-categories.dto';
 import {
@@ -18,7 +29,7 @@ import {
 } from './dtos/create-restaurant.dto';
 import { Restaurant } from './entities/restaurant.entity';
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class RestaurantService {
@@ -43,6 +54,58 @@ export class RestaurantService {
         results: restaurants,
         totalPages: Math.ceil(totalResults / this._PAGINATION_RANGE),
         totalResults,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async findRestaurantById({
+    restaurantId,
+  }: SeeRestaurantInput): Promise<SeeRestaurantOutput> {
+    try {
+      const restaurant = await this.restaurantRepository.findOne(restaurantId);
+      if (!restaurant) {
+        return {
+          isSucceeded: false,
+          error: 'Restaurant not found',
+        };
+      }
+      return {
+        isSucceeded: true,
+        restaurant,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async searchRestaurantByName({
+    query,
+    page,
+  }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
+    try {
+      const [
+        restaurants,
+        totalResults,
+      ] = await this.restaurantRepository.findAndCount({
+        where: {
+          name: ILike(`%${query}%`),
+          skip: (page - 1) * this._PAGINATION_RANGE,
+          take: this._PAGINATION_RANGE,
+        },
+      });
+      return {
+        isSucceeded: true,
+        restaurants,
+        totalResults,
+        totalPages: Math.ceil(totalResults / this._PAGINATION_RANGE),
       };
     } catch (error) {
       return {
