@@ -1,3 +1,7 @@
+import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
+import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
+import { Dish } from './entities/dish.entity';
+import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import {
   SearchRestaurantInput,
   SearchRestaurantOutput,
@@ -36,6 +40,8 @@ export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurantRepository: Repository<Restaurant>,
+    @InjectRepository(Dish)
+    private readonly dishRespository: Repository<Dish>,
     private readonly categoryRepository: CategoryRepository,
   ) {}
   private readonly _PAGINATION_RANGE = 5;
@@ -67,7 +73,9 @@ export class RestaurantService {
     restaurantId,
   }: SeeRestaurantInput): Promise<SeeRestaurantOutput> {
     try {
-      const restaurant = await this.restaurantRepository.findOne(restaurantId);
+      const restaurant = await this.restaurantRepository.findOne(restaurantId, {
+        relations: ['menu'],
+      });
       if (!restaurant) {
         return {
           isSucceeded: false,
@@ -267,6 +275,112 @@ export class RestaurantService {
         restaurants,
         category,
         totalPages: Math.ceil(totalResults / this._PAGINATION_RANGE),
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async createDish(
+    owner: User,
+    createDishInput: CreateDishInput,
+  ): Promise<CreateDishOutput> {
+    try {
+      const restaurant = await this.restaurantRepository.findOne(
+        createDishInput.restaurantId,
+      );
+      if (!restaurant) {
+        return {
+          isSucceeded: false,
+          error: 'Restaurant not found',
+        };
+      }
+      if (owner.id !== restaurant.ownerId) {
+        return {
+          isSucceeded: false,
+          error: "You can't do that",
+        };
+      }
+
+      await this.dishRespository.save(
+        this.dishRespository.create({ ...createDishInput, restaurant }),
+      );
+
+      return {
+        isSucceeded: true,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async editDish(
+    owner: User,
+    editDishInput: EditDishInput,
+  ): Promise<EditDishOutput> {
+    try {
+      const dish = await this.dishRespository.findOne(editDishInput.dishId, {
+        relations: ['restaurant'],
+      });
+      if (!dish) {
+        return {
+          isSucceeded: false,
+          error: 'Dish not found',
+        };
+      }
+      if (dish.restaurant.ownerId !== owner.id) {
+        return {
+          isSucceeded: false,
+          error: "You can't do that",
+        };
+      }
+
+      this.dishRespository.save([
+        {
+          id: editDishInput.dishId,
+          ...editDishInput,
+        },
+      ]);
+      return {
+        isSucceeded: true,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async deleteDish(
+    owner: User,
+    { dishId }: DeleteDishInput,
+  ): Promise<DeleteDishOutput> {
+    try {
+      const dish = await this.dishRespository.findOne(dishId, {
+        relations: ['restaurant'],
+      });
+      if (!dish) {
+        return {
+          isSucceeded: false,
+          error: 'Dish not found',
+        };
+      }
+      if (dish.restaurant.ownerId !== owner.id) {
+        return {
+          isSucceeded: false,
+          error: "You can't do that",
+        };
+      }
+      await this.dishRespository.delete(dishId);
+      return {
+        isSucceeded: true,
       };
     } catch (error) {
       return {
