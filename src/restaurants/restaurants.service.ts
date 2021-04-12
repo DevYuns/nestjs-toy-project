@@ -1,3 +1,5 @@
+import { Dish } from './entities/dish.entity';
+import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import {
   SearchRestaurantInput,
   SearchRestaurantOutput,
@@ -36,6 +38,8 @@ export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
     private readonly restaurantRepository: Repository<Restaurant>,
+    @InjectRepository(Dish)
+    private readonly dishRespository: Repository<Dish>,
     private readonly categoryRepository: CategoryRepository,
   ) {}
   private readonly _PAGINATION_RANGE = 5;
@@ -67,7 +71,9 @@ export class RestaurantService {
     restaurantId,
   }: SeeRestaurantInput): Promise<SeeRestaurantOutput> {
     try {
-      const restaurant = await this.restaurantRepository.findOne(restaurantId);
+      const restaurant = await this.restaurantRepository.findOne(restaurantId, {
+        relations: ['menu'],
+      });
       if (!restaurant) {
         return {
           isSucceeded: false,
@@ -267,6 +273,42 @@ export class RestaurantService {
         restaurants,
         category,
         totalPages: Math.ceil(totalResults / this._PAGINATION_RANGE),
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async createDish(
+    owner: User,
+    createDishInput: CreateDishInput,
+  ): Promise<CreateDishOutput> {
+    try {
+      const restaurant = await this.restaurantRepository.findOne(
+        createDishInput.restaurantId,
+      );
+      if (!restaurant) {
+        return {
+          isSucceeded: false,
+          error: 'Restaurant not found',
+        };
+      }
+      if (owner.id !== restaurant.ownerId) {
+        return {
+          isSucceeded: false,
+          error: "You can't do that",
+        };
+      }
+
+      const dish = await this.dishRespository.save(
+        this.dishRespository.create({ ...createDishInput, restaurant }),
+      );
+
+      return {
+        isSucceeded: true,
       };
     } catch (error) {
       return {
