@@ -1,3 +1,4 @@
+import { Order } from './../../orders/entities/order.entity';
 import { Dish } from './dish.entity';
 import { User } from './../../users/entities/user.entity';
 import { Category } from './category.entity';
@@ -37,10 +38,14 @@ export class Restaurant extends CoreEntity {
   @ManyToOne(() => User, (user) => user.restaurants, { onDelete: 'CASCADE' })
   owner: User;
 
-  @RelationId((restaurant: Restaurant) => restaurant.owner)
-  ownerId: number;
-
   @Field(() => [Dish])
   @OneToMany(() => Dish, (dish) => dish.restaurant)
   menu: Dish[];
+
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.restaurant)
+  orders: Order[];
+
+  @RelationId((restaurant: Restaurant) => restaurant.owner)
+  ownerId: number;
 }
