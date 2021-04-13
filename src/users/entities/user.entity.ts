@@ -1,3 +1,4 @@
+import { Order } from './../../orders/entities/order.entity';
 import { Restaurant } from './../../restaurants/entities/restaurant.entity';
 import {
   ObjectType,
@@ -45,6 +46,14 @@ export class User extends CoreEntity {
   @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
   @Field(() => [Restaurant])
   restaurants: Restaurant[];
+
+  @OneToMany(() => Order, (order) => order.customer)
+  @Field(() => [Order])
+  orders: Order[];
+
+  @OneToMany(() => Order, (order) => order.driver)
+  @Field(() => [Order])
+  rides: Order[];
 
   @BeforeInsert()
   @BeforeUpdate()

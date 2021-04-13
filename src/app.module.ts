@@ -1,3 +1,4 @@
+import { Order } from './orders/entities/order.entity';
 import { Dish } from './restaurants/entities/dish.entity';
 import { AuthModule } from './auth/auth.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
@@ -19,6 +20,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from './jwt/jwt.module';
 import { MailModule } from './mail/mail.module';
+import { OrdersModule } from './orders/orders.module';
 import * as Joi from 'joi';
 @Module({
   imports: [
@@ -50,7 +52,7 @@ import * as Joi from 'joi';
       // logging:
       //   process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
       namingStrategy: new SnakeNamingStrategy(),
-      entities: [User, Verification, Restaurant, Category, Dish],
+      entities: [User, Verification, Restaurant, Category, Dish, Order],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -67,6 +69,7 @@ import * as Joi from 'joi';
     UsersModule,
     RestaurantsModule,
     AuthModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],
