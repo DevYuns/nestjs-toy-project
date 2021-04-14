@@ -1,3 +1,4 @@
+import { OrderItem } from './order-item.entity';
 import { Restaurant } from './../../restaurants/entities/restaurant.entity';
 import { Dish } from './../../restaurants/entities/dish.entity';
 import { User } from './../../users/entities/user.entity';
@@ -39,24 +40,24 @@ export class Order extends CoreEntity {
   })
   driver?: User;
 
-  @Field(() => Restaurant)
+  @Field(() => Restaurant, { nullable: true })
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.orders, {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  restaurant: Restaurant;
+  restaurant?: Restaurant;
 
-  @Field(() => [Dish])
-  @ManyToMany(() => Dish)
+  @Field(() => [OrderItem])
+  @ManyToMany(() => OrderItem)
   @JoinTable()
-  dishes: Dish[];
+  items: OrderItem[];
 
-  @Column()
-  @Field(() => Float)
+  @Column({ nullable: true })
+  @Field(() => Float, { nullable: true })
   @IsNumber()
-  total: number;
+  total?: number;
 
-  @Column({ type: 'enum', enum: OrderStatus })
+  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
   @Field(() => OrderStatus)
   @IsEnum(OrderStatus)
   status: OrderStatus;
