@@ -20,6 +20,7 @@ export class OrderService {
     @InjectRepository(Dish)
     private readonly disheRepository: Repository<Dish>,
   ) {}
+
   async createOrder(
     customer: User,
     { restaurantId, items }: CreateOrderInput,
@@ -33,7 +34,8 @@ export class OrderService {
           error: 'Restaurant not found',
         };
       }
-
+      let orderFinalPrice = 0;
+      const orderItems: OrderItem[] = [];
       for (const item of items) {
         const dish = await this.disheRepository.findOne(item.disiId);
         if (!dish) {
@@ -42,17 +44,49 @@ export class OrderService {
             error: 'Dish not found',
           };
         }
-        await this.orderItemRepository.save(
-          this.orderItemRepository.create({ dish, options: item.options }),
+        let dishFinalPrice = dish.price;
+        for (const itemOption of item.options) {
+          const dishOption = dish.options.find(
+            (dishOption) => dishOption.name === itemOption.name,
+          );
+
+          if (dishOption) {
+            if (dishOption.extra) {
+              dishFinalPrice += dishOption.extra;
+            } else {
+              const dishOptionChoice = dishOption.choices.find(
+                (optionChoice) => optionChoice.name === itemOption.choice,
+              );
+              if (dishOptionChoice) {
+                if (dishOptionChoice.extra) {
+                  dishFinalPrice += dishOptionChoice.extra;
+                }
+              }
+            }
+          }
+        }
+        orderFinalPrice += dishFinalPrice;
+        const orderItem = await this.orderItemRepository.save(
+          this.orderItemRepository.create({
+            dish,
+            options: item.options,
+          }),
         );
+        orderItems.push(orderItem);
       }
 
-      const order = await this.orderRepository.save(
+      await this.orderRepository.save(
         this.orderRepository.create({
           customer,
           restaurant,
+          total: orderFinalPrice,
+          items: orderItems,
         }),
       );
+
+      return {
+        isSucceeded: true,
+      };
     } catch (error) {
       return {
         isSucceeded: false,
