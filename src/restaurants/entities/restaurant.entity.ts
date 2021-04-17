@@ -7,7 +7,7 @@ import { IsString, Length } from 'class-validator';
 import { Field, ObjectType, InputType } from '@nestjs/graphql';
 import { Entity, Column, ManyToOne, RelationId, OneToMany } from 'typeorm';
 
-@InputType('RestaurantInputType', { isAbstract: true })
+@InputType('RestaurantInput', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class Restaurant extends CoreEntity {
