@@ -1,10 +1,12 @@
+import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
+import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Restaurant } from './../restaurants/entities/restaurant.entity';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { User, UserRole } from './../users/entities/user.entity';
-import { Order } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -106,12 +108,14 @@ export class OrderService {
         orders = await this.orderRepository.find({
           where: {
             customer: user,
+            ...(status && { status }),
           },
         });
       } else if (user.role === UserRole.DELIVERY) {
         orders = await this.orderRepository.find({
           where: {
             driver: user,
+            ...(status && { status }),
           },
         });
       } else if (user.role === UserRole.OWNER) {
@@ -122,11 +126,126 @@ export class OrderService {
           relations: ['orders'],
         });
         orders = restaurants.map((restaurant) => restaurant.orders).flat(1);
+        if (status) {
+          orders = orders.filter((order) => order.status === status);
+        }
       }
 
       return {
         isSucceeded: true,
         orders,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  canSeeOrder(user: User, order: Order): boolean {
+    let canSee = true;
+    if (user.role === UserRole.CLIENT && order.customerId !== user.id) {
+      canSee = false;
+    }
+    if (user.role === UserRole.DELIVERY && order.driverId !== user.id) {
+      canSee = false;
+    }
+    if (user.role === UserRole.OWNER && order.restaurant.ownerId !== user.id) {
+      canSee = false;
+    }
+    return canSee;
+  }
+
+  async getOrder(
+    user: User,
+    { id: orderId }: GetOrderInput,
+  ): Promise<GetOrderOutput> {
+    try {
+      const order = await this.orderRepository.findOne(orderId, {
+        relations: ['restaurant'],
+      });
+
+      if (!order) {
+        return {
+          isSucceeded: false,
+          error: 'Order not found',
+        };
+      }
+
+      if (this.canSeeOrder(user, order)) {
+        return {
+          isSucceeded: false,
+          error: "You can't see that",
+        };
+      }
+
+      return {
+        isSucceeded: true,
+        order,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async editOrder(
+    user: User,
+    { id: orderId, status }: EditOrderInput,
+  ): Promise<EditOrderOutput> {
+    try {
+      const order = await this.orderRepository.findOne(orderId, {
+        relations: ['restaurant'],
+      });
+
+      if (!order) {
+        return {
+          isSucceeded: false,
+          error: 'Order not found',
+        };
+      }
+
+      if (!this.canSeeOrder(user, order)) {
+        return {
+          isSucceeded: false,
+          error: "Can't see this.",
+        };
+      }
+      let canEdit = true;
+      if (user.role === UserRole.CLIENT) {
+        canEdit = false;
+      }
+      if (user.role === UserRole.OWNER) {
+        if (status !== OrderStatus.COOKING && status !== OrderStatus.COOKED) {
+          canEdit = false;
+        }
+      }
+      if (user.role === UserRole.DELIVERY) {
+        if (
+          status !== OrderStatus.PICKED_UP &&
+          status !== OrderStatus.DELIVERED
+        ) {
+          canEdit = false;
+        }
+      }
+      if (!canEdit) {
+        return {
+          isSucceeded: false,
+          error: "You can't do that.",
+        };
+      }
+
+      await this.orderRepository.save([
+        {
+          id: orderId,
+          status,
+        },
+      ]);
+      return {
+        isSucceeded: true,
       };
     } catch (error) {
       return {
