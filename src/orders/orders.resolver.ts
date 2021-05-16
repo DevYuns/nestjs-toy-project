@@ -1,4 +1,8 @@
-import { NEW_COOKED_ORDER } from './../common/common.constants';
+import { TakeOrderOutput, TakeOrderInput } from './dtos/take-order.dto';
+import {
+  NEW_COOKED_ORDER,
+  NEW_ORDER_UPDATE,
+} from './../common/common.constants';
 import { PubSub } from 'graphql-subscriptions';
 import { EditOrderOutput, EditOrderInput } from './dtos/edit-order.dto';
 import { GetOrderOutput, GetOrderInput } from './dtos/get-order.dto';
@@ -12,6 +16,7 @@ import { Order } from './entities/order.entity';
 import { OrderService } from './orders.service';
 import { Inject } from '@nestjs/common';
 import { NEW_PENDING_ORDER, PUB_SUB } from '../common/common.constants';
+import { OrderUpdatesInput } from './dtos/order-updates.dto';
 
 @Resolver(() => Order)
 export class OrderResolver {
@@ -71,5 +76,35 @@ export class OrderResolver {
   @Role(['DELIVERY'])
   cookedOrder() {
     return this.pubsub.asyncIterator(NEW_COOKED_ORDER);
+  }
+
+  @Subscription(() => Order, {
+    filter: (
+      { orderUpdates: order }: { orderUpdates: Order },
+      { input }: { input: OrderUpdatesInput },
+      { user }: { user: User },
+    ) => {
+      if (
+        order.driverId !== user.id &&
+        order.customerId !== user.id &&
+        order.restaurant.ownerId !== user.id
+      ) {
+        return false;
+      }
+      return order.id === input.id;
+    },
+  })
+  @Role(['Any'])
+  orderUpdates(@Args('input') orderUpdatesInput: OrderUpdatesInput) {
+    return this.pubsub.asyncIterator(NEW_ORDER_UPDATE);
+  }
+
+  @Mutation(() => TakeOrderOutput)
+  @Role(['DELIVERY'])
+  takeOrder(
+    @Args('input') takeOrderInput: TakeOrderInput,
+    @AuthUser() driver: User,
+  ): Promise<TakeOrderOutput> {
+    return this.orderService.takeOrder(driver, takeOrderInput);
   }
 }

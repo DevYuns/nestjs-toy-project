@@ -1,4 +1,8 @@
-import { NEW_COOKED_ORDER } from './../common/common.constants';
+import { TakeOrderOutput, TakeOrderInput } from './dtos/take-order.dto';
+import {
+  NEW_COOKED_ORDER,
+  NEW_ORDER_UPDATE,
+} from './../common/common.constants';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
@@ -204,9 +208,7 @@ export class OrderService {
     { id: orderId, status }: EditOrderInput,
   ): Promise<EditOrderOutput> {
     try {
-      const order = await this.orderRepository.findOne(orderId, {
-        relations: ['restaurant'],
-      });
+      const order = await this.orderRepository.findOne(orderId);
 
       if (!order) {
         return {
@@ -250,13 +252,60 @@ export class OrderService {
         status,
       });
 
+      const newOrder = { ...order, status };
+
       if (user.role === UserRole.OWNER) {
         if (status === OrderStatus.COOKED) {
           await this.pubsub.publish(NEW_COOKED_ORDER, {
-            cookedOrders: { ...order, status },
+            cookedOrders: newOrder,
           });
         }
       }
+
+      await this.pubsub.publish(NEW_ORDER_UPDATE, {
+        orderUpdates: newOrder,
+      });
+      return {
+        isSucceeded: true,
+      };
+    } catch (error) {
+      return {
+        isSucceeded: false,
+        error,
+      };
+    }
+  }
+
+  async takeOrder(
+    driver: User,
+    { id: orderId }: TakeOrderInput,
+  ): Promise<TakeOrderOutput> {
+    try {
+      const order = await this.orderRepository.findOne(orderId);
+
+      if (!order) {
+        return {
+          isSucceeded: false,
+          error: 'Order not found',
+        };
+      }
+
+      if (order.driver) {
+        return {
+          isSucceeded: false,
+          error: 'This order has already has a driver',
+        };
+      }
+
+      await this.orderRepository.save({
+        id: orderId,
+        driver,
+      });
+
+      await this.pubsub.publish(NEW_ORDER_UPDATE, {
+        orderUpdates: { ...order, driver },
+      });
+
       return {
         isSucceeded: true,
       };
