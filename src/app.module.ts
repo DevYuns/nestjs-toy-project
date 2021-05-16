@@ -1,3 +1,4 @@
+import { CommonModule } from './common/common.module';
 import { OrderItem } from './orders/entities/order-item.entity';
 import { Order } from './orders/entities/order.entity';
 import { Dish } from './restaurants/entities/dish.entity';
@@ -84,6 +85,7 @@ import * as Joi from 'joi';
     RestaurantsModule,
     AuthModule,
     OrdersModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
