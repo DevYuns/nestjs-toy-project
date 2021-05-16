@@ -1,3 +1,4 @@
+import { NEW_COOKED_ORDER } from './../common/common.constants';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
@@ -244,12 +245,18 @@ export class OrderService {
         };
       }
 
-      await this.orderRepository.save([
-        {
-          id: orderId,
-          status,
-        },
-      ]);
+      await this.orderRepository.save({
+        id: orderId,
+        status,
+      });
+
+      if (user.role === UserRole.OWNER) {
+        if (status === OrderStatus.COOKED) {
+          await this.pubsub.publish(NEW_COOKED_ORDER, {
+            cookedOrders: { ...order, status },
+          });
+        }
+      }
       return {
         isSucceeded: true,
       };
