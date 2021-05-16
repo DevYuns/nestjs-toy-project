@@ -8,8 +8,10 @@ import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { User, UserRole } from './../users/entities/user.entity';
 import { Order, OrderStatus } from './entities/order.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { NEW_PENDING_ORDER, PUB_SUB } from '../common/common.constants';
+import { PubSub } from 'graphql-subscriptions';
 
 @Injectable()
 export class OrderService {
@@ -22,6 +24,7 @@ export class OrderService {
     private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Dish)
     private readonly disheRepository: Repository<Dish>,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
   ) {}
 
   async createOrder(
@@ -78,7 +81,7 @@ export class OrderService {
         orderItems.push(orderItem);
       }
 
-      await this.orderRepository.save(
+      const order = await this.orderRepository.save(
         this.orderRepository.create({
           customer,
           restaurant,
@@ -87,6 +90,9 @@ export class OrderService {
         }),
       );
 
+      await this.pubsub.publish(NEW_PENDING_ORDER, {
+        pendingOrders: { order, ownerId: restaurant.ownerId },
+      });
       return {
         isSucceeded: true,
       };
