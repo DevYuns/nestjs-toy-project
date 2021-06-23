@@ -54,6 +54,9 @@ export class RestaurantService {
       ] = await this.restaurantRepository.findAndCount({
         skip: (page - 1) * this._PAGINATION_RANGE,
         take: this._PAGINATION_RANGE,
+        order: {
+          isPromoted: 'DESC',
+        },
       });
       return {
         isSucceeded: true,
@@ -107,6 +110,9 @@ export class RestaurantService {
           name: ILike(`%${query}%`),
           skip: (page - 1) * this._PAGINATION_RANGE,
           take: this._PAGINATION_RANGE,
+          order: {
+            isPromoted: 'DESC',
+          },
         },
       });
       return {
