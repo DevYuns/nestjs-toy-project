@@ -7,8 +7,9 @@ import {
 import { Payment } from './entities/payment.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { GetPaymentsOutput } from './dtos/get-payments.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class PaymentService {
@@ -36,7 +37,7 @@ export class PaymentService {
       if (restaurant.ownerId !== owner.id) {
         return {
           isSucceeded: false,
-          error: 'Tou are not allowed to do this',
+          error: 'You are not allowed to do this',
         };
       }
 
@@ -47,6 +48,11 @@ export class PaymentService {
           restaurant,
         }),
       );
+      restaurant.isPromoted = true;
+      const date = new Date();
+      date.setDate(date.getDate() + 7);
+      restaurant.promotedUntil = date;
+      this.RestaurantRepository.save(restaurant);
       return {
         isSucceeded: true,
       };
@@ -71,5 +77,20 @@ export class PaymentService {
         error: 'Could not load payments.',
       };
     }
+  }
+
+  @Cron('* * 0 * * *')
+  async checkPromotedRestaurants() {
+    const restaurant = await this.RestaurantRepository.find({
+      isPromoted: true,
+      promotedUntil: LessThan(new Date()),
+    });
+
+    restaurant.forEach((restaurant) => {
+      restaurant.isPromoted = false;
+      restaurant.promotedUntil = null;
+    });
+
+    await this.RestaurantRepository.save(restaurant);
   }
 }
