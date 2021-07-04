@@ -14,9 +14,9 @@ import { GetPaymentsOutput } from './dtos/get-payments.dto';
 export class PaymentResovler {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Mutation(() => CreatePaymentInput)
+  @Mutation(() => CreatePaymentOutput)
   @Role(['OWNER'])
-  createPayment(
+  async createPayment(
     @AuthUser() owner: User,
     @Args('input') createPaymentInput: CreatePaymentInput,
   ): Promise<CreatePaymentOutput> {
@@ -25,7 +25,7 @@ export class PaymentResovler {
 
   @Query(() => GetPaymentsOutput)
   @Role(['OWNER'])
-  getPayments(@AuthUser() user: User): Promise<GetPaymentsOutput> {
+  async getPayments(@AuthUser() user: User): Promise<GetPaymentsOutput> {
     return this.paymentService.getPayments(user);
   }
 }
